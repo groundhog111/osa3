@@ -1,4 +1,6 @@
-require('dotenv').config()
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config()
+}
 const express = require('express')
 const bodyParser = require('body-parser') 
 const morgan = require('morgan')
@@ -90,6 +92,7 @@ app.post('/api/persons', (request, response, next) => {
       person.save().then(savedPerson => {
         response.json(savedPerson.toJSON())
       })
+      .catch(error=> next(error))
    }
 })
 
@@ -105,6 +108,9 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === 'CastError' && error.kind == 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
   } 
+  else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
 
   next(error)
 }
